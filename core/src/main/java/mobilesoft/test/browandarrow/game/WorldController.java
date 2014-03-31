@@ -9,6 +9,10 @@ import com.badlogic.gdx.utils.Disposable;
 import mobilesoft.test.browandarrow.screen.DirectedGame;
 import mobilesoft.test.browandarrow.util.CameraHelper;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
+
 /**
  * Created by BruSD on 30.03.2014.
  */
@@ -24,8 +28,11 @@ public class WorldController  extends InputAdapter implements Disposable {
     public float scoreVisual;
 
     public float powerOfShot;
-
-
+    private Timer timer = new Timer();
+    private static final int MAX_POWER = 100;
+    private static final int MIN_POWER = 0;
+    private static final int TICKSIZE = 100;
+    private volatile PowerChangeDirection direction = PowerChangeDirection.INCREASE;
 
     private String levelID = "levels/level-1.tmx";
 
@@ -112,15 +119,51 @@ public class WorldController  extends InputAdapter implements Disposable {
     }
 
     public boolean touchDown (int screenX, int screenY, int pointer, int button) {
-
-        powerOfShot += 1;
+        if (timer == null)
+            timer = new Timer();
+        else {
+            timer.cancel();
+            timer = new Timer();
+        }
+        timer.schedule(new ChangePower(), 0, TICKSIZE);
         return false;
     }
 
 
     public boolean touchUp (int screenX, int screenY, int pointer, int button) {
-        powerOfShot += 5;
-
+        if (timer != null) {
+            timer.cancel();
+        }
         return false;
     }
+
+    private enum PowerChangeDirection {
+        INCREASE,
+        DECREASE;
+    }
+
+    private class ChangePower extends TimerTask {
+
+        @Override
+        public void run() {
+            if (powerOfShot >= MAX_POWER)
+                direction = PowerChangeDirection.DECREASE;
+            else
+            if (powerOfShot <= MIN_POWER)
+                direction = PowerChangeDirection.INCREASE;
+
+            switch (direction) {
+                case DECREASE: {
+                    powerOfShot--;
+                    break;
+                }
+                case INCREASE: {
+                    powerOfShot++;
+                    break;
+                }
+            }
+        }
+    }
+
+
 }
